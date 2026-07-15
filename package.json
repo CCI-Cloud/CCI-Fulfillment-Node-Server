@@ -2,10 +2,14 @@
   "name": "cci-node-server",
   "version": "1.0.0",
   "description": "Express Server with OAuth2 Authentication and Oracle NetSuite REST API Integration.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+	"main": "main.js",
+	"scripts": {
+		"start": "node main.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"engines": {
+		"node": ">=20 <25"
+	},
   "keywords": [],
   "author": "",
   "license": "ISC",
