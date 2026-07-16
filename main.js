@@ -24,22 +24,22 @@ const {
 // Custom error handlers
 const { handleError, handle404 } = require("./errorHandlers");
 
-// AWS module imports for handling file uploads to S3
-const AWS = require("aws-sdk");
+// AWS SDK v3 modules for handling file uploads to S3-compatible storage
+const { S3Client } = require("@aws-sdk/client-s3");
+const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require("multer"); //adds a body object and a file or files object to the request object
 const storage = multer.memoryStorage(); // Store uploaded files as buffers in memory
 const upload = multer({ storage: storage });
 
-// Configure AWS SDK with access credentials and region
-AWS.config.update({
-	accessKeyId: config.IDRIVE_ACCESS_KEY_ID,
-	secretAccessKey: config.IDRIVE_SECRET_ACCESS_KEY,
+// Configure the v3 S3 client for IDrive's S3-compatible endpoint.
+const s3 = new S3Client({
+	endpoint: config.IDRIVE_S3_ENDPOINT,
 	region: config.IDRIVE_S3_REGION,
-});
-const customEndpoint = config.IDRIVE_S3_ENDPOINT;
-const s3 = new AWS.S3({
-	endpoint: customEndpoint,
-	s3ForcePathStyle: true, // Forces path style URLs
+	credentials: {
+		accessKeyId: config.IDRIVE_ACCESS_KEY_ID,
+		secretAccessKey: config.IDRIVE_SECRET_ACCESS_KEY,
+	},
+	forcePathStyle: true,
 });
 
 // Initialize Express application
@@ -310,7 +310,10 @@ app.post("/api/uploadToS3", upload.array("files"), async (req, res, next) => {
 					ACL: `${config.IDRIVE_S3_ACL}`,
 				};
 
-				const result = await s3.upload(uploadParams).promise();
+				const result = await new Upload({
+					client: s3,
+					params: uploadParams,
+				}).done();
 				let resultPublicLocation = result.Location.substring(
 					result.Location.indexOf("m") + 1,
 				); // 'm' is last letter of bucket endpoint
